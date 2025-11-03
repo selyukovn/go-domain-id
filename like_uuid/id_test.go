@@ -1,0 +1,124 @@
+package like_uuid
+
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
+
+func testDataProvider_Id_correctValues() []string {
+	return []string{
+		"aa902246-1f28-44c7-8452-04805999ac32",
+		"592beeaa-e3d2-4768-bab3-7a5469d82bb3",
+		"1f688344-cce7-4a60-a96e-768291c6d3e0",
+		"00000000-0000-0000-0000-000000000000",
+
+		// TODO: define UUID case policy (case-sensitive or not?)
+		"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+		"aaaaaaaa-aaaa-aaaa-aaaa-AAAAAAAAAAAA",
+		"AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+	}
+}
+
+func testDataProvider_Id_incorrectValues() []string {
+	return []string{
+		"",
+		" ",
+		"1",
+		"123456789012345678901234567890123456",
+		"a",
+		"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!!!",
+		"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ",
+		" aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		" aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ",
+		"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaa!!!",
+		"ёёёёёёёё-ёёёё-ёёёё-ёёёё-ёёёёёёёёёёёё",
+	}
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// IdFromString
+// ---------------------------------------------------------------------------------------------------------------------
+
+func Test_IdFromString(t *testing.T) {
+	t.Run("correct", func(t *testing.T) {
+		tCases := testDataProvider_Id_correctValues()
+		for _, tCase := range tCases {
+			id, err := IdFromString(tCase)
+			// no error
+			assert.NoError(t, err)
+			// id not nil
+			assert.NotEqual(t, IdNil, id)
+			assert.False(t, id.IsNil())
+			assert.Equal(t, tCase, id.String())
+		}
+	})
+
+	t.Run("incorrect", func(t *testing.T) {
+		tCases := testDataProvider_Id_incorrectValues()
+		for _, tCase := range tCases {
+			id, err := IdFromString(tCase)
+			// error
+			assert.Error(t, err)
+			// id nil
+			assert.Equal(t, IdNil, id)
+			assert.True(t, id.IsNil())
+		}
+	})
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// IdFromStringMust
+// ---------------------------------------------------------------------------------------------------------------------
+
+func Test_IdFromStringMust(t *testing.T) {
+	t.Run("correct", func(t *testing.T) {
+		tCases := testDataProvider_Id_correctValues()
+		for _, tCase := range tCases {
+			// no panic
+			assert.NotPanics(t, func() { IdFromStringMust(tCase) })
+			// id not nil
+			id := IdFromStringMust(tCase)
+			assert.NotEqual(t, IdNil, id)
+			assert.False(t, id.IsNil())
+			assert.Equal(t, tCase, id.String())
+		}
+	})
+
+	t.Run("incorrect", func(t *testing.T) {
+		tCases := testDataProvider_Id_incorrectValues()
+		for _, tCase := range tCases {
+			assert.Panics(t, func() { IdFromStringMust(tCase) })
+		}
+	})
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// IsNil
+// ---------------------------------------------------------------------------------------------------------------------
+
+func Test_Id_IsNil(t *testing.T) {
+	t.Run("true", func(t *testing.T) {
+		assert.True(t, IdNil.IsNil())
+	})
+
+	t.Run("false", func(t *testing.T) {
+		tCases := testDataProvider_Id_correctValues()
+		for _, tCase := range tCases {
+			id, _ := IdFromString(tCase)
+			assert.False(t, id.IsNil())
+		}
+	})
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// String
+// ---------------------------------------------------------------------------------------------------------------------
+
+func Test_Id_String(t *testing.T) {
+	tCases := testDataProvider_Id_correctValues()
+	for _, tCase := range tCases {
+		id, _ := IdFromString(tCase)
+		assert.Equal(t, tCase, id.String())
+	}
+}
